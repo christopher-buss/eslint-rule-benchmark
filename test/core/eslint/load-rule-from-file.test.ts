@@ -163,6 +163,25 @@ describe('loadRuleFromFile', () => {
     expect(result.error).toBeUndefined()
   })
 
+  it('returns undefined when default export rules miss the requested rule', async () => {
+    vi.mocked(mockJiti.import).mockResolvedValueOnce({
+      default: {
+        rules: {
+          'another-rule': { create: () => ({}), meta: {} },
+        },
+      },
+    })
+
+    let result = await loadRuleFromFile(mockJiti, {
+      configDirectory: '/path/to/config',
+      rulePath: '/path/to/default.js',
+      ruleId: 'missing-rule',
+    })
+
+    expect(result.rule).toBeUndefined()
+    expect(result.error).toBeUndefined()
+  })
+
   it('catches and reports import errors', async () => {
     let errorMessage = 'Module not found'
 

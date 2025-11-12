@@ -55,8 +55,15 @@ describe('publishGithubComment (GraphQL)', () => {
         repository: {
           pullRequest: {
             comments: {
+              nodes: [
+                {
+                  author: { login: 'someone' },
+                  id: 'OTHER_COMMENT_NODE_ID',
+                  body: 'Some other comment',
+                  databaseId: 789,
+                },
+              ],
               pageInfo: { hasNextPage: false, endCursor: null },
-              nodes: [],
             },
             id: 'PR_NODE_ID',
           },

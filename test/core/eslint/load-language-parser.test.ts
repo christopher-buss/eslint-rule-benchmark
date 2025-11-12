@@ -118,6 +118,17 @@ describe('loadLanguageParser', () => {
     expect(result.error).toMatch(/Parser not found in module/u)
   })
 
+  it('handles missing parser inside default export module', async () => {
+    vi.mocked(mockJiti.import).mockResolvedValueOnce({
+      default: { unrelated: true },
+    })
+
+    let result = await loadLanguageParser(mockJiti, 'typescript')
+
+    expect(result.parser).toBeUndefined()
+    expect(result.error).toMatch(/Parser not found in module/u)
+  })
+
   it('catches and reports import errors', async () => {
     let errorMessage = 'Parser package not found'
 

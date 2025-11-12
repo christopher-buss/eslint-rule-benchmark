@@ -226,12 +226,10 @@ export async function runBenchmarksFromConfig(
     return
   }
 
-  if (allTestSpecResults.length > 0) {
-    console.info(
-      `Benchmark run completed. ${allTestSpecResults.length} test specifications processed.`,
-    )
-    await runReporters(allTestSpecResults, userConfig, reporterOptions)
-  }
+  console.info(
+    `Benchmark run completed. ${allTestSpecResults.length} test specifications processed.`,
+  )
+  await runReporters(allTestSpecResults, userConfig, reporterOptions)
 
   console.info('Benchmark run finished.')
 }

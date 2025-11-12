@@ -146,6 +146,88 @@ describe('runBenchmark', () => {
     expect(tasks).toBeNull()
   })
 
+  it('adds each language only once per test case', async () => {
+    testCase.samples = [
+      { language: 'javascript', code: 'const a = 1;', filename: 'a.js' },
+      { language: 'javascript', code: 'const b = 2;', filename: 'b.js' },
+    ]
+
+    await runBenchmark({ testCases: [testCase], configDirectory, config })
+
+    expect(createESLintInstance).toHaveBeenCalledWith(
+      expect.objectContaining({ languages: ['javascript'] }),
+    )
+  })
+
+  it('skips tasks without samples and returns null when nothing is processed', async () => {
+    vi.mocked(createBench).mockImplementationOnce(() => {
+      let addedTasks: { fn(): Promise<void>; name: string }[] = []
+      return {
+        run: vi.fn(async () => {
+          await Promise.all(addedTasks.map(task => task.fn()))
+          return addedTasks.map(task => ({
+            result: undefined,
+            name: task.name,
+          }))
+        }),
+        add: vi.fn((name: string, function_: () => Promise<void>) => {
+          addedTasks.push({ fn: function_, name })
+        }),
+        opts: { warmupIterations: 0, iterations: 1, warmupTime: 0, time: 0 },
+        get tasks() {
+          return addedTasks
+        },
+      } as unknown as Bench
+    })
+
+    let result = await runBenchmark({
+      testCases: [testCase],
+      configDirectory,
+      config,
+    })
+
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining('has no samples or result'),
+    )
+    expect(result).toBeNull()
+  })
+
+  it('warns when all samples are filtered out as outliers', async () => {
+    vi.mocked(createBench).mockImplementationOnce(() => {
+      let addedTasks: { fn(): Promise<void>; name: string }[] = []
+      return {
+        run: vi.fn(async () => {
+          await Promise.all(addedTasks.map(task => task.fn()))
+          return addedTasks.map(task => ({
+            result: {
+              samples: [Number.NaN, Number.NaN],
+            } as unknown as TaskResult,
+            name: task.name,
+          }))
+        }),
+        add: vi.fn((name: string, function_: () => Promise<void>) => {
+          addedTasks.push({ fn: function_, name })
+        }),
+        opts: { warmupIterations: 0, iterations: 1, warmupTime: 0, time: 0 },
+        get tasks() {
+          return addedTasks
+        },
+      } as unknown as Bench
+    })
+
+    let result = await runBenchmark({
+      testCases: [testCase],
+      configDirectory,
+      config,
+    })
+
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining('All 2 samples'),
+    )
+    expect(result).not.toBeNull()
+    expect(result![0]!.metrics.sampleCount).toBeGreaterThan(0)
+  })
+
   it('calls createESLintInstance for each TestCase and lintText for each sample + warmup', async () => {
     let anotherTestCase: TestCase = {
       ...testCase,

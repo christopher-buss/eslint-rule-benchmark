@@ -61,10 +61,14 @@ export async function useConsoleReport(
       continue
     }
 
-    let tableRows: string[][] = [[testSpecResult.name], TABLE_HEADERS]
-    let alignments = Array.from({ length: TABLE_HEADERS.length }).fill(
-      'left',
-    ) as Alignment[]
+    let tableRows: string[][] = []
+    let hasSpecName = testSpecResult.name.trim().length > 0
+
+    if (hasSpecName) {
+      tableRows.push([testSpecResult.name])
+    }
+
+    tableRows.push(TABLE_HEADERS)
 
     for (let testCaseResult of testSpecResult.testCaseResults) {
       if (testCaseResult.samplesResults.length === 0) {
@@ -81,7 +85,7 @@ export async function useConsoleReport(
       }
     }
 
-    outputLines.push(renderTable(tableRows, uniformColumnWidths, alignments))
+    outputLines.push(renderTable(tableRows, uniformColumnWidths))
   }
 
   let systemInfo = await collectSystemInfo()
@@ -116,11 +120,12 @@ function renderTable(
   let tableWidth = separator.length
   let lines: string[] = []
   let processedRows = rows
+  let [titleRow] = processedRows
 
-  if (processedRows[0] && processedRows[0].length === 1) {
+  if (titleRow && titleRow.length === 1) {
     lines.push(
       separator,
-      padCell(processedRows[0][0]!, tableWidth, 'center'),
+      padCell(titleRow[0]!, tableWidth, 'center'),
       separator,
     )
     processedRows = processedRows.slice(1)
@@ -129,8 +134,8 @@ function renderTable(
   for (let row of processedRows) {
     let rendered = row
       .map((cell, col) => {
-        let alignment = columnAlignments?.[col]
-        let content = padCell(cell, fixedColumnWidths[col]!, alignment!)
+        let alignment = columnAlignments?.[col] ?? 'left'
+        let content = padCell(cell, fixedColumnWidths[col]!, alignment)
         let leftSpace = ' '.repeat(leftPads[col]!)
         let rightSpace = ' '.repeat(rightPads[col]!)
         return leftSpace + content + rightSpace
@@ -139,9 +144,7 @@ function renderTable(
     lines.push(rendered)
   }
 
-  if (processedRows.length > 0) {
-    lines.push(separator)
-  }
+  lines.push(separator)
   return lines.join('\n')
 }
 

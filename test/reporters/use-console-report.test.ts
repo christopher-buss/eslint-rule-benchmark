@@ -416,6 +416,40 @@ describe('useConsoleReport', () => {
     expect(uniqueLengths).toHaveLength(1)
   })
 
+  it('renders tables without a title row when the specification name is blank', async () => {
+    let testCase = createMockTestCaseResult({
+      samplesResults: [
+        createMockProcessedTask('Nameless spec on file.js', {
+          sampleCount: 42,
+          mean: 0.123,
+          hz: 9876,
+        }),
+      ],
+      name: 'Nameless Case',
+    })
+
+    let testSpec = createMockTestSpecResult({
+      testCaseResults: [testCase],
+      name: '   ',
+    })
+
+    let consoleOutput = await useConsoleReport(
+      [testSpec],
+      createMockUserConfig(),
+    )
+
+    let lines = consoleOutput.split('\n')
+    let headerIndex = lines.findIndex(line => line.includes('Sample'))
+    expect(headerIndex).toBeGreaterThan(0)
+
+    let linesBeforeHeader = lines.slice(0, headerIndex)
+    let hasTextBeforeHeader = linesBeforeHeader.some(line =>
+      /[A-Za-z]/u.test(line),
+    )
+    expect(hasTextBeforeHeader).toBeFalsy()
+    expect(consoleOutput).toContain('Nameless spec on file.js')
+  })
+
   it('properly aligns table headers and data', async () => {
     let testCase = createMockTestCaseResult({
       samplesResults: [

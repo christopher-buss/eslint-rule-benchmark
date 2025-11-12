@@ -52,17 +52,19 @@ export async function collectSystemInfo(): Promise<SystemInfo> {
 
   let cpus = os.cpus()
   let [firstCpu] = cpus
+  let cpuSpeedMHz = firstCpu?.speed ?? 0
+  let cpuModel = firstCpu?.model ?? 'unknown'
 
   return {
     v8Version: process.versions.v8,
     nodeVersion: process.version,
-    cpuSpeedMHz: firstCpu!.speed,
-    cpuModel: firstCpu!.model,
     platform: os.platform(),
     osRelease: os.release(),
     cpuCount: cpus.length,
     arch: os.arch(),
     totalMemoryGb,
     eslintVersion,
+    cpuSpeedMHz,
+    cpuModel,
   }
 }
