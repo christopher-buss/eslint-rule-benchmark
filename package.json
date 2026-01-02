@@ -75,6 +75,7 @@
     "@azat-io/typescript-config": "^1.1.1",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
+    "@commitlint/types": "^20.2.0",
     "@octokit/webhooks-types": "^7.6.1",
     "@types/node": "^24.7.0",
     "@typescript-eslint/parser": "^8.46.0",
